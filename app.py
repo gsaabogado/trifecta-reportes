@@ -28,24 +28,19 @@ def get_gdrive_service():
     return service
 
 
-def download_gdrive_with_secrets(url):
+def download_gdrive_with_secrets(url, progress_bar=None):
     """Download a Google Drive folder using service account from secrets."""
-    from gdrive_download import extract_folder_id, download_folder
+    from gdrive_download import download_gdrive_folder
 
-    folder_id = extract_folder_id(url)
-    service = get_gdrive_service()
+    SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
+    sa_info = json.loads(st.secrets["GDRIVE_SERVICE_ACCOUNT"])
+    creds = service_account.Credentials.from_service_account_info(sa_info, scopes=SCOPES)
 
-    # Get folder name
-    folder_meta = service.files().get(
-        fileId=folder_id, fields="name", supportsAllDrives=True
-    ).execute()
-    folder_name = folder_meta["name"]
+    def progress_callback(current, total, filename):
+        if progress_bar:
+            progress_bar.progress(current / total, text=f"Descargando {current}/{total}: {filename}")
 
-    # Download to temp dir
-    tmp = Path(tempfile.mkdtemp()) / folder_name
-    tmp.mkdir(parents=True, exist_ok=True)
-    download_folder(service, folder_id, tmp)
-    return str(tmp)
+    return download_gdrive_folder(url, creds=creds, progress_callback=progress_callback)
 
 
 # ---------------------------------------------------------------------------
@@ -88,12 +83,14 @@ if input_mode == "Google Drive link":
             st.stop()
 
         if st.button("Generar Reporte", type="primary", use_container_width=True):
-            with st.spinner("Descargando carpeta de Google Drive..."):
-                try:
-                    local_folder = download_gdrive_with_secrets(url)
-                except Exception as e:
-                    st.error(f"Error descargando de Google Drive: {e}")
-                    st.stop()
+            progress_bar = st.progress(0, text="Descargando carpeta de Google Drive...")
+            try:
+                local_folder = download_gdrive_with_secrets(url, progress_bar=progress_bar)
+                progress_bar.empty()
+            except Exception as e:
+                progress_bar.empty()
+                st.error(f"Error descargando de Google Drive: {e}")
+                st.stop()
 
             # Show summary
             photos_dir = Path(local_folder) / "2.Photos"
