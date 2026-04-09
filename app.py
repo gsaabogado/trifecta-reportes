@@ -30,6 +30,7 @@ def get_gdrive_service():
 
 def download_gdrive_with_secrets(url, progress_bar=None):
     """Download a Google Drive folder using service account from secrets."""
+    from google.oauth2 import service_account
     from gdrive_download import download_gdrive_folder
 
     SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
