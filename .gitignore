@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.env
+.gdrive_token.json
+credentials.json
+service_account.json
+*.docx
+*.pdf
+ejercicios/
+test_output*
