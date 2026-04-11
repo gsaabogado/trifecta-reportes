@@ -16,8 +16,16 @@ import streamlit as st
 # Make local src/ importable on Streamlit Cloud
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
-from branding import inject_css, page_icon, render_footer, render_hero, section_label
+from branding import (
+    inject_css,
+    page_icon,
+    render_footer,
+    render_hero,
+    render_instructions,
+    section_label,
+)
 from config import APP_VERSION, load_settings
+from folder_structure import validate_folder
 from report_types import REPORT_TYPES, available_types
 
 # ---------------------------------------------------------------------------
@@ -42,28 +50,53 @@ def t(es: str, en: str, lang: str) -> str:
     return es if lang == "es" else en
 
 
-def folder_summary(folder_path: str, lang: str) -> None:
-    """Show a metric strip with the contents of an inspection folder."""
-    folder = Path(folder_path)
-    photos_dir = folder / "2.Photos"
-    products_dir = photos_dir / "1.Products"
-    container_dir = photos_dir / "2.Container"
+def folder_summary(folder_path: str, lang: str) -> bool:
+    """Show metrics + structure-validation feedback. Return True if safe to generate."""
+    v = validate_folder(folder_path, lang=lang)
 
-    cols = st.columns(3)
-    sizes_count = 0
-    photos_count = 0
-    container_count = 0
+    cols = st.columns(4)
+    cols[0].metric(t("Tallas", "Sizes", lang), v.sizes_count)
+    cols[1].metric(t("Fotos producto", "Product photos", lang), v.products_count)
+    cols[2].metric(t("Fotos contenedor", "Container photos", lang), v.container_count)
+    cols[3].metric(t("Documentos", "Documents", lang), v.docs_count)
 
-    if products_dir.exists():
-        sizes = [d for d in products_dir.iterdir() if d.is_dir()]
-        sizes_count = len(sizes)
-        photos_count = sum(len(list(d.iterdir())) for d in sizes)
-    if container_dir.exists():
-        container_count = len(list(container_dir.iterdir()))
+    if v.errors:
+        bullets = "\n".join(f"- {e}" for e in v.errors)
+        st.error(
+            t(
+                "**Estructura de carpeta inválida.** No se puede generar el reporte:\n\n",
+                "**Invalid folder structure.** Cannot generate the report:\n\n",
+                lang,
+            )
+            + bullets
+            + t(
+                "\n\nAbra **«Cómo usar la app»** arriba para ver la estructura correcta.",
+                "\n\nOpen **\"How to use the app\"** above to see the required structure.",
+                lang,
+            )
+        )
+        return False
 
-    cols[0].metric(t("Tallas", "Sizes", lang), sizes_count)
-    cols[1].metric(t("Fotos producto", "Product photos", lang), photos_count)
-    cols[2].metric(t("Fotos contenedor", "Container photos", lang), container_count)
+    if v.warnings:
+        bullets = "\n".join(f"- {w}" for w in v.warnings)
+        st.warning(
+            t(
+                "**Avisos:** El reporte se puede generar, pero hay carpetas opcionales faltantes:\n\n",
+                "**Warnings:** The report can be generated, but some optional folders are missing:\n\n",
+                lang,
+            )
+            + bullets
+        )
+    else:
+        st.success(
+            t(
+                "Estructura de carpeta correcta. Listo para generar el reporte.",
+                "Folder structure is valid. Ready to generate the report.",
+                lang,
+            )
+        )
+
+    return True
 
 
 def run_generation(local_folder: str, lang: str, type_key: str) -> None:
@@ -117,6 +150,9 @@ lang_label = st.radio(
     label_visibility="collapsed",
 )
 lang = "es" if lang_label == "Español" else "en"
+
+# Instructions panel — collapsible, language-aware
+render_instructions(lang=lang)
 
 types = available_types()
 if len(types) > 1:
@@ -221,8 +257,8 @@ if source_choice == "gdrive":
                 st.error(t(f"Error descargando: {e}", f"Download error: {e}", lang))
                 st.stop()
 
-            folder_summary(local_folder, lang)
-            run_generation(local_folder, lang, type_key)
+            if folder_summary(local_folder, lang):
+                run_generation(local_folder, lang, type_key)
 
 elif source_choice == "dropbox":
     from dropbox_download import download_dropbox_folder, is_dropbox_url
@@ -267,8 +303,8 @@ elif source_choice == "dropbox":
                 st.error(t(f"Error descargando: {e}", f"Download error: {e}", lang))
                 st.stop()
 
-            folder_summary(local_folder, lang)
-            run_generation(local_folder, lang, type_key)
+            if folder_summary(local_folder, lang):
+                run_generation(local_folder, lang, type_key)
 
 elif source_choice == "local":
     folder_path = st.text_input(
@@ -279,11 +315,12 @@ elif source_choice == "local":
         if not Path(folder_path).exists():
             st.error(t("Carpeta no encontrada.", "Folder not found.", lang))
         else:
-            folder_summary(folder_path, lang)
+            ok = folder_summary(folder_path, lang)
             if st.button(
                 t("Generar reporte", "Generate report", lang),
                 type="primary",
                 use_container_width=True,
+                disabled=not ok,
             ):
                 run_generation(folder_path, lang, type_key)
 

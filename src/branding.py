@@ -329,3 +329,112 @@ def render_footer(version: str = "") -> None:
 def page_icon() -> str:
     """Return a path to use as the Streamlit page icon (favicon)."""
     return str(LOGO_PATH) if LOGO_PATH.exists() else "📋"
+
+
+# ---------------------------------------------------------------------------
+# Bilingual instructions panel
+# ---------------------------------------------------------------------------
+_INSTRUCTIONS = {
+    "es": {
+        "title": "Cómo usar la app",
+        "intro": (
+            "Esta app genera reportes de previo en origen (CCI) automáticamente "
+            "a partir de una carpeta de fotos de la inspección."
+        ),
+        "structure_label": "Estructura de carpeta requerida",
+        "structure_intro": (
+            "Su carpeta de inspección **debe** tener esta estructura. "
+            "Las marcadas como obligatorias son necesarias para que el reporte se genere; "
+            "las opcionales se incluyen si existen."
+        ),
+        "tree": """CCI-XXXXX-XXXX/
+├── 2.Photos/                    ← OBLIGATORIO
+│   ├── 1.Products/              ← OBLIGATORIO
+│   │   ├── S/                   ← Subcarpeta por talla con fotos
+│   │   ├── M/                   ← Mínimo una talla con fotos
+│   │   ├── L/
+│   │   └── XL/
+│   ├── 2.Container/             ← Opcional (recomendado)
+│   └── Other/                   ← Opcional
+└── 3.Documents/                 ← Opcional
+    └── 1.Acknowledgement/       ← Acuses firmados""",
+        "steps_label": "Pasos para generar un reporte",
+        "steps": [
+            "Suba la carpeta de inspección a **Dropbox** o **Google Drive**.",
+            "Comparta la carpeta como **«Cualquier persona con el link puede ver»**.",
+            "Copie el link de la carpeta compartida.",
+            "Seleccione el idioma del reporte (Español o English).",
+            "Seleccione la fuente (Dropbox o Google Drive) y pegue el link.",
+            "Verifique que la estructura de carpetas sea correcta (la app le avisará si falta algo).",
+            "Click en **«Generar reporte»** y espere mientras se descargan las fotos.",
+            "Descargue el archivo `.docx` y revíselo antes de enviarlo al cliente.",
+        ],
+        "notes_label": "Notas",
+        "notes": [
+            "Las fotos se **comprimen automáticamente** a 800×600 JPG para acelerar la descarga.",
+            "Los nombres de las tallas (S, M, L, XL...) se usan tal cual aparecen en la carpeta.",
+            "Las carpetas ocultas (`.git`, `.claude`, etc.) se ignoran.",
+            "Si comparte desde Dropbox, asegúrese que el link sea **público** (no «solo para personas específicas»).",
+            "Si comparte desde Google Drive, comparta la carpeta con el correo de servicio: `trifecta-reportes@trifecta-reportes.iam.gserviceaccount.com`",
+        ],
+    },
+    "en": {
+        "title": "How to use the app",
+        "intro": (
+            "This app automatically generates pre-shipment inspection (CCI) reports "
+            "from a folder of inspection photos."
+        ),
+        "structure_label": "Required folder structure",
+        "structure_intro": (
+            "Your inspection folder **must** match this layout. "
+            "Items marked required are necessary for the report to generate; "
+            "optional items are included if present."
+        ),
+        "tree": """CCI-XXXXX-XXXX/
+├── 2.Photos/                    ← REQUIRED
+│   ├── 1.Products/              ← REQUIRED
+│   │   ├── S/                   ← One subfolder per size, with photos
+│   │   ├── M/                   ← At least one size with photos
+│   │   ├── L/
+│   │   └── XL/
+│   ├── 2.Container/             ← Optional (recommended)
+│   └── Other/                   ← Optional
+└── 3.Documents/                 ← Optional
+    └── 1.Acknowledgement/       ← Signed acknowledgments""",
+        "steps_label": "Steps to generate a report",
+        "steps": [
+            "Upload the inspection folder to **Dropbox** or **Google Drive**.",
+            "Share the folder as **\"Anyone with the link can view\"**.",
+            "Copy the shared folder link.",
+            "Select the report language (Español or English).",
+            "Select the source (Dropbox or Google Drive) and paste the link.",
+            "Check the folder structure validation (the app will warn you if anything is missing).",
+            "Click **\"Generate report\"** and wait while the photos download.",
+            "Download the `.docx` and review it before sending to the client.",
+        ],
+        "notes_label": "Notes",
+        "notes": [
+            "Photos are **automatically compressed** to 800×600 JPG to speed up downloads.",
+            "Size names (S, M, L, XL...) are used exactly as they appear in the folder.",
+            "Hidden folders (`.git`, `.claude`, etc.) are ignored.",
+            "If sharing from Dropbox, make sure the link is **public** (not \"only specific people\").",
+            "If sharing from Google Drive, share the folder with the service account email: `trifecta-reportes@trifecta-reportes.iam.gserviceaccount.com`",
+        ],
+    },
+}
+
+
+def render_instructions(lang: str = "es") -> None:
+    """Render the bilingual 'how to use' panel as a collapsible expander."""
+    txt = _INSTRUCTIONS.get(lang, _INSTRUCTIONS["es"])
+    with st.expander(f"📖 {txt['title']}", expanded=False):
+        st.markdown(txt["intro"])
+        st.markdown(f"**{txt['structure_label']}**")
+        st.markdown(txt["structure_intro"])
+        st.code(txt["tree"], language="text")
+        st.markdown(f"**{txt['steps_label']}**")
+        for i, step in enumerate(txt["steps"], 1):
+            st.markdown(f"{i}. {step}")
+        st.markdown(f"**{txt['notes_label']}**")
+        for note in txt["notes"]:
+            st.markdown(f"- {note}")
