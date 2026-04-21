@@ -453,7 +453,7 @@ def resize_image_for_doc(image_path, max_width_inches=3.3, max_height_inches=2.5
     img = Image.open(image_path)
     if img.mode in ("RGBA", "P"):
         img = img.convert("RGB")
-    dpi = 300
+    dpi = 600
     max_w_px = int(max_width_inches * dpi)
     max_h_px = int(max_height_inches * dpi)
     img.thumbnail((max_w_px, max_h_px), Image.LANCZOS)
