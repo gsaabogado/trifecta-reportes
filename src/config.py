@@ -10,8 +10,6 @@ This module exposes a single `Settings` object that knows which providers are
 configured and produces friendly user messages when something is missing.
 """
 
-from __future__ import annotations
-
 import json
 import os
 from dataclasses import dataclass
