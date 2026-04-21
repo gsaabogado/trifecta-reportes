@@ -835,13 +835,14 @@ def build_product_pages(doc, products_folder, lang="en"):
 
 
 def _add_photo_grid(doc, images, caption_labels=None, lang="en"):
-    """Insert images in a 2-column grid, 6 per page (3 rows of 2)."""
-    PHOTOS_PER_PAGE = 6
+    """Insert images in a 2-column grid, 4 per page (2 rows of 2)."""
+    ROWS_PER_PAGE = 2
     IMG_WIDTH = Inches(3.3)
-    IMG_MAX_H = 1.9  # inches — fits 3 rows + captions + margins on letter
+    IMG_MAX_H = 3.0  # inches — fits 2 rows + captions + margins on letter
 
     for i in range(0, len(images), 2):
         batch = images[i:i + 2]
+        row_num = i // 2
 
         # Photo row
         table = doc.add_table(rows=1, cols=2)
@@ -878,11 +879,14 @@ def _add_photo_grid(doc, images, caption_labels=None, lang="en"):
         if len(batch) == 1:
             set_cell_shading(cap_table.rows[0].cells[1], "FFFFFF")
 
-        # Small spacer between rows (not after last pair)
+        # Page break after every ROWS_PER_PAGE rows; spacer between rows within a page
         if (i + 2) < len(images):
-            p = doc.add_paragraph()
-            p.paragraph_format.space_before = Pt(1)
-            p.paragraph_format.space_after = Pt(1)
+            if (row_num + 1) % ROWS_PER_PAGE == 0:
+                doc.add_page_break()
+            else:
+                p = doc.add_paragraph()
+                p.paragraph_format.space_before = Pt(1)
+                p.paragraph_format.space_after = Pt(1)
 
 
 def build_general_product_pictures(doc, products_folder, lang="en"):
