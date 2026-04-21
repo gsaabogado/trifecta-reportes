@@ -448,12 +448,12 @@ def add_placeholder(doc, text):
     return add_body_text(doc, text, italic=True, color=PLACEHOLDER_GRAY, size=SMALL_SIZE)
 
 
-def resize_image_for_doc(image_path, max_width_inches=3.3, max_height_inches=2.5, quality=80):
+def resize_image_for_doc(image_path, max_width_inches=3.3, max_height_inches=2.5, quality=85):
     """Resize and compress an image, return BytesIO buffer."""
     img = Image.open(image_path)
     if img.mode in ("RGBA", "P"):
         img = img.convert("RGB")
-    dpi = 150
+    dpi = 300
     max_w_px = int(max_width_inches * dpi)
     max_h_px = int(max_height_inches * dpi)
     img.thumbnail((max_w_px, max_h_px), Image.LANCZOS)

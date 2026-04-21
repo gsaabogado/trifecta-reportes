@@ -34,9 +34,9 @@ TOKEN_PATH = Path(__file__).resolve().parent.parent / ".gdrive_token.json"
 CREDENTIALS_PATH = Path(__file__).resolve().parent.parent / "credentials.json"
 
 # Image compression settings
-MAX_IMAGE_WIDTH = 800   # px — enough for 3.3" at 150dpi in the report
-MAX_IMAGE_HEIGHT = 600
-JPEG_QUALITY = 70
+MAX_IMAGE_WIDTH = 1600
+MAX_IMAGE_HEIGHT = 1200
+JPEG_QUALITY = 80
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif"}
 
 # Parallel download settings

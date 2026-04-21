@@ -45,9 +45,9 @@ from PIL import Image
 
 
 # Image compression settings (kept in sync with gdrive_download.py)
-MAX_IMAGE_WIDTH = 800
-MAX_IMAGE_HEIGHT = 600
-JPEG_QUALITY = 70
+MAX_IMAGE_WIDTH = 1600
+MAX_IMAGE_HEIGHT = 1200
+JPEG_QUALITY = 80
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif"}
 
 MAX_WORKERS = 8
