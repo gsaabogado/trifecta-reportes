@@ -125,7 +125,7 @@ def _strip_share_root(path: str, share_prefix_lower: str) -> str:
 
 def _list_shared_folder(
     dbx: dropbox.Dropbox, url: str
-) -> tuple[str, list[FileMetadata]]:
+) -> tuple[str, list[tuple[str, FileMetadata]]]:
     """List every file under a Dropbox shared folder link.
 
     Recurses manually because Dropbox does not support
@@ -135,9 +135,10 @@ def _list_shared_folder(
     -------
     folder_name : str
         Display name of the root shared folder.
-    files : list of FileMetadata
-        All files under the share, in arbitrary order. Their ``path_display``
-        fields include the share root prefix.
+    files : list of (rel_path, FileMetadata)
+        All files under the share. rel_path is '/' + path relative to share
+        root (e.g. '/2.Photos/1.Products/S/img1.jpg'). Computed during listing
+        so we never rely on entry.path_lower which can be None.
     """
     shared_link = SharedLink(url=url)
 
@@ -155,7 +156,20 @@ def _list_shared_folder(
     folder_name = getattr(root_meta, "name", "dropbox_folder")
     share_prefix_lower = "/" + folder_name.lower()
 
-    files: list[FileMetadata] = []
+    files: list[tuple[str, FileMetadata]] = []
+
+    def _make_rel(parent_rel: str, entry_name: str, path_lower: Optional[str]) -> str:
+        """Return the '/' + share-root-relative path for a child entry.
+
+        Prefers stripping path_lower (accurate casing from API) but falls back
+        to parent_rel + entry_name when path_lower is None (Dropbox omits it
+        for some entry types).
+        """
+        if path_lower is not None:
+            return _strip_share_root(path_lower, share_prefix_lower)
+        base = parent_rel.rstrip("/")
+        rel = base + "/" + entry_name
+        return rel if rel.startswith("/") else "/" + rel
 
     def walk(rel_path: str) -> None:
         """rel_path is relative to the share root, prefixed with '/' (or '' for root)."""
@@ -169,12 +183,13 @@ def _list_shared_folder(
         while True:
             for entry in result.entries:
                 if isinstance(entry, FileMetadata):
-                    files.append(entry)
+                    file_rel = _make_rel(rel_path, entry.name, entry.path_lower)
+                    files.append((file_rel, entry))
                 elif isinstance(entry, FolderMetadata):
                     # Skip hidden folders like .claude, .git, etc.
                     if entry.name.startswith("."):
                         continue
-                    sub_rel = _strip_share_root(entry.path_lower, share_prefix_lower)
+                    sub_rel = _make_rel(rel_path, entry.name, entry.path_lower)
                     walk(sub_rel)
             if not result.has_more:
                 break
@@ -209,18 +224,15 @@ def _build_client(
 def _download_one(
     auth: dict,
     url: str,
-    share_prefix_lower: str,
+    file_rel_path: str,
     entry: FileMetadata,
 ) -> tuple[Optional[bytes], str, bool]:
     """Download a single file via the shared link. Returns (bytes, name, is_image)."""
     # Build a per-thread Dropbox client (httplib2-style state isn't shared)
     dbx = _build_client(**auth)
 
-    # sharing_get_shared_link_file wants the path *relative to the share root*
-    rel_path = _strip_share_root(entry.path_lower, share_prefix_lower)
-
     try:
-        _meta, resp = dbx.sharing_get_shared_link_file(url=url, path=rel_path)
+        _meta, resp = dbx.sharing_get_shared_link_file(url=url, path=file_rel_path)
     except Exception as e:
         raise RuntimeError(f"Could not download {entry.name}: {e}") from e
 
@@ -278,46 +290,36 @@ def download_dropbox_folder(
     if total == 0:
         raise RuntimeError("Shared link contains no files.")
 
-    share_prefix_lower = "/" + folder_name.lower()
-
     if output_dir:
         local_dir = Path(output_dir)
     else:
         local_dir = Path(tempfile.mkdtemp()) / folder_name
     local_dir.mkdir(parents=True, exist_ok=True)
 
-    def _local_subpath(entry: FileMetadata) -> str:
-        """Path under `local_dir` for an entry, preserving subfolder casing."""
-        # _strip_share_root takes a lowercased prefix but slices the original
-        # string, so we get back an original-case sub-path (e.g. "/2.Photos/...").
-        return _strip_share_root(entry.path_display, share_prefix_lower).lstrip("/")
-
-    # Pre-create subdirectories
-    for entry in entries:
-        rel_local = _local_subpath(entry)
-        sub = os.path.dirname(rel_local)
+    # Pre-create subdirectories (use the tracked rel_path, not entry fields)
+    for file_rel, _entry in entries:
+        sub = os.path.dirname(file_rel.lstrip("/"))
         if sub:
             (local_dir / sub).mkdir(parents=True, exist_ok=True)
 
     completed = 0
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         futures = {}
-        for entry in entries:
-            fut = executor.submit(_download_one, auth, url, share_prefix_lower, entry)
-            futures[fut] = entry
+        for file_rel, entry in entries:
+            fut = executor.submit(_download_one, auth, url, file_rel, entry)
+            futures[fut] = (file_rel, entry)
 
         for fut in as_completed(futures):
-            entry = futures[fut]
+            file_rel, entry = futures[fut]
             completed += 1
             try:
                 data, file_name, is_image = fut.result()
                 if data is not None:
-                    rel_local = _local_subpath(entry)
-                    sub = os.path.dirname(rel_local)
+                    sub = os.path.dirname(file_rel.lstrip("/"))
                     dest = local_dir / sub / file_name if sub else local_dir / file_name
                     dest.write_bytes(data)
                     tag = "IMG" if is_image else "DOC"
-                    print(f"  [{completed}/{total}] {tag} {rel_local}")
+                    print(f"  [{completed}/{total}] {tag} {file_rel}")
             except Exception as e:
                 print(f"  [{completed}/{total}] ERR {entry.name}: {e}")
 
