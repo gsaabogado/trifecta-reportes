@@ -50,9 +50,18 @@ def _kv_table(data: dict) -> None:
 
 
 def _img(name: str, caption: str) -> None:
-    """Render a guide screenshot if the asset exists."""
+    """Render a guide screenshot if the asset exists.
+
+    Streamlit renamed use_container_width -> width="stretch" and removal of
+    the old kwarg is scheduled; the cloud may run either side of the change,
+    so try the new API first and fall back to the old one.
+    """
     path = ASSETS / name
-    if path.exists():
+    if not path.exists():
+        return
+    try:
+        st.image(str(path), caption=caption, width="stretch")
+    except TypeError:
         st.image(str(path), caption=caption, use_container_width=True)
 
 
