@@ -81,287 +81,287 @@ def render_sat_guide(lang: str = "es") -> None:
     )
 
     # -----------------------------------------------------------------
-    section_label("Paso 0 — Qué necesita y dónde está")
-    st.markdown(
-        """
-Antes de abrir el portal, junte estas **3 cosas**. Si falta una, no podrá
-terminar:
+    with st.expander("🗂️ Paso 0 — Qué necesita y dónde está", expanded=True):
+        st.markdown(
+            """
+    Antes de abrir el portal, junte estas **3 cosas**. Si falta una, no podrá
+    terminar:
 
-**A. e.firma (FIEL) de SNCG** — sirve para **INICIAR SESIÓN** en el portal.
-Son dos archivos (un `.cer` y un `.key`) más su contraseña. Están en el
-Shared Drive, carpeta `02_fiscal/firma_electronica/`.
+    **A. e.firma (FIEL) de SNCG** — sirve para **INICIAR SESIÓN** en el portal.
+    Son dos archivos (un `.cer` y un `.key`) más su contraseña. Están en el
+    Shared Drive, carpeta `02_fiscal/firma_electronica/`.
 
-**B. CSD (Certificado de Sello Digital) de SNCG** — sirve para **SELLAR
-(firmar) la factura** al final. También son un `.cer` + un `.key` con su
-propia contraseña, PERO **no son los mismos archivos que la e.firma**.
-Están en `02_fiscal/sello_digital/`.
+    **B. CSD (Certificado de Sello Digital) de SNCG** — sirve para **SELLAR
+    (firmar) la factura** al final. También son un `.cer` + un `.key` con su
+    propia contraseña, PERO **no son los mismos archivos que la e.firma**.
+    Están en `02_fiscal/sello_digital/`.
 
-⚠️ **REGLA DE ORO: copie los 4 archivos a su Escritorio ANTES de empezar.**
-Nunca los suba al portal directo desde la carpeta de Google Drive o Dropbox:
-el navegador puede subir un archivo incompleto y el portal dirá que el
-certificado o la contraseña son inválidos **aunque todo esté correcto**.
-(Nos pasó: el mismo archivo falló desde Drive y funcionó desde el Escritorio.)
-Al terminar, borre las copias del Escritorio.
+    ⚠️ **REGLA DE ORO: copie los 4 archivos a su Escritorio ANTES de empezar.**
+    Nunca los suba al portal directo desde la carpeta de Google Drive o Dropbox:
+    el navegador puede subir un archivo incompleto y el portal dirá que el
+    certificado o la contraseña son inválidos **aunque todo esté correcto**.
+    (Nos pasó: el mismo archivo falló desde Drive y funcionó desde el Escritorio.)
+    Al terminar, borre las copias del Escritorio.
 
-Para no confundir los pares: los archivos cuyo nombre empieza con `FIEL` o
-`Claveprivada_FIEL` son la **e.firma** (entrar); los que empiezan con `CSD`
-o con puros números son el **sello** (firmar). El CSD vigente de SNCG expira
-el **30-ene-2029**.
+    Para no confundir los pares: los archivos cuyo nombre empieza con `FIEL` o
+    `Claveprivada_FIEL` son la **e.firma** (entrar); los que empiezan con `CSD`
+    o con puros números son el **sello** (firmar). El CSD vigente de SNCG expira
+    el **30-ene-2029**.
 
-📄 La ubicación exacta de cada archivo y quién resguarda cada contraseña
-están en la guía interna **«Accesos facturación SAT»** dentro de
-`02_fiscal/` en el Drive (documento interno; no se publica aquí). Si no
-tiene acceso, pídalo a administración (Laura).
+    📄 La ubicación exacta de cada archivo y quién resguarda cada contraseña
+    están en la guía interna **«Accesos facturación SAT»** dentro de
+    `02_fiscal/` en el Drive (documento interno; no se publica aquí). Si no
+    tiene acceso, pídalo a administración (Laura).
 
-**C. Constancia de Situación Fiscal (CSF) del CLIENTE**, reciente (menos de
-~3 meses). De ahí se copian su RFC, nombre, código postal y régimen fiscal.
-**Pídala al cliente antes de empezar** — es la causa #1 de rechazos. Para
-clientes ya facturados antes no hace falta: el portal los recuerda (paso 3).
-"""
-    )
-
-    # -----------------------------------------------------------------
-    section_label("Datos fijos de SNCG (copiar tal cual)")
-    _kv_table(EMISOR)
-    st.markdown("**Concepto (servicio de inspección):**")
-    _kv_table(CONCEPTO)
-    st.info(
-        "El nombre del emisor se escribe **SNCG CONSULTING**, en mayúsculas y "
-        "**sin** «SAS DE CV». En CFDI 4.0 el régimen societario NUNCA se "
-        "incluye en el nombre — ni en el emisor ni en el receptor. Es el "
-        "error más común de todo el proceso."
-    )
+    **C. Constancia de Situación Fiscal (CSF) del CLIENTE**, reciente (menos de
+    ~3 meses). De ahí se copian su RFC, nombre, código postal y régimen fiscal.
+    **Pídala al cliente antes de empezar** — es la causa #1 de rechazos. Para
+    clientes ya facturados antes no hace falta: el portal los recuerda (paso 3).
+    """
+        )
 
     # -----------------------------------------------------------------
-    section_label("Paso 1 — Entrar al portal")
-    st.markdown("Copie esta dirección en **Chrome o Edge** (no Safari):")
-    st.code(PORTAL_URL, language="text")
-    st.markdown(
-        """
-(Si la dirección cambia: en Google busque **«SAT genera tu factura»** y entre
-al resultado que termine en `sat.gob.mx`. Nunca entre a un timbrador de
-anuncios/publicidad: el portal oficial es gratuito.)
-
-La página muestra dos formas de iniciar sesión. **Use la pestaña «e.firma»**
-(botón abajo a la derecha): la de «Contraseña» pide la Contraseña del SAT
-(antes CIEC), que NO es la contraseña de la e.firma. Si mete la contraseña
-de la e.firma ahí, verá «El RFC o contraseña son incorrectos»:
-"""
-    )
-    _img(
-        "01_login_contrasena_error.jpg",
-        "Pantalla equivocada: «Acceso por contraseña» pide la CIEC, no la "
-        "contraseña de la e.firma. Si ve este error, cambie al botón «e.firma».",
-    )
-    st.markdown(
-        """
-En la pantalla **«Acceso con e.firma»**:
-
-1. En «Certificado (.cer)» cargue el `.cer` de la **e.firma** (¡no el del CSD!).
-2. En «Clave privada (.key)» cargue el `.key` de la e.firma.
-3. Escriba la contraseña de la e.firma (mejor: cópiela y péguela) y el
-   captcha, y entre. El RFC se llena solo al cargar el certificado.
-"""
-    )
-    _img(
-        "02_login_efirma.jpg",
-        "Pantalla correcta: «Acceso con e.firma» con los archivos de la "
-        "e.firma cargados. Si aun así marca error, casi siempre es porque los "
-        "archivos se subieron desde Drive/Dropbox: cópielos al Escritorio.",
-    )
+    with st.expander("📋 Datos fijos de SNCG (copiar tal cual)", expanded=False):
+        _kv_table(EMISOR)
+        st.markdown("**Concepto (servicio de inspección):**")
+        _kv_table(CONCEPTO)
+        st.info(
+            "El nombre del emisor se escribe **SNCG CONSULTING**, en mayúsculas y "
+            "**sin** «SAS DE CV». En CFDI 4.0 el régimen societario NUNCA se "
+            "incluye en el nombre — ni en el emisor ni en el receptor. Es el "
+            "error más común de todo el proceso."
+        )
 
     # -----------------------------------------------------------------
-    section_label("Paso 2 — Abrir el formulario de factura")
-    st.markdown(
-        """
-Ya dentro, en el menú superior derecho elija **«Generación de CFDI»**.
-Se abre el formulario «Factura» (una sola página). La cabecera
-**Comprobante** ya viene pre-llenada con los datos de SNCG — solo
-**verifique** que diga: Régimen Simplificado de Confianza, C.P. `36250`,
-Tipo `Ingreso`, Forma de pago `Transferencia electrónica de fondos`,
-Método `Pago en una sola exhibición` (PUE) y Moneda `Peso Mexicano`.
-"""
-    )
-    _img(
-        "03_formulario.jpg",
-        "El formulario de factura. La cabecera «Comprobante» ya trae los "
-        "datos fijos de SNCG; usted solo llena cliente y concepto.",
-    )
-    st.markdown(
-        """
-Sobre la forma y método de pago:
-- Si el cliente pagará por transferencia (lo normal): deje `Transferencia` + `PUE`.
-- Si aún no se sabe cómo pagará: Forma `99 - Por definir`.
-- `PPD` solo si pagará después o en partes — y obliga a emitir luego un
-  **complemento de pago**. En SNCG lo normal es **PUE**.
-"""
-    )
+    with st.expander("🔑 Paso 1 — Entrar al portal", expanded=False):
+        st.markdown("Copie esta dirección en **Chrome o Edge** (no Safari):")
+        st.code(PORTAL_URL, language="text")
+        st.markdown(
+            """
+    (Si la dirección cambia: en Google busque **«SAT genera tu factura»** y entre
+    al resultado que termine en `sat.gob.mx`. Nunca entre a un timbrador de
+    anuncios/publicidad: el portal oficial es gratuito.)
+
+    La página muestra dos formas de iniciar sesión. **Use la pestaña «e.firma»**
+    (botón abajo a la derecha): la de «Contraseña» pide la Contraseña del SAT
+    (antes CIEC), que NO es la contraseña de la e.firma. Si mete la contraseña
+    de la e.firma ahí, verá «El RFC o contraseña son incorrectos»:
+    """
+        )
+        _img(
+            "01_login_contrasena_error.jpg",
+            "Pantalla equivocada: «Acceso por contraseña» pide la CIEC, no la "
+            "contraseña de la e.firma. Si ve este error, cambie al botón «e.firma».",
+        )
+        st.markdown(
+            """
+    En la pantalla **«Acceso con e.firma»**:
+
+    1. En «Certificado (.cer)» cargue el `.cer` de la **e.firma** (¡no el del CSD!).
+    2. En «Clave privada (.key)» cargue el `.key` de la e.firma.
+    3. Escriba la contraseña de la e.firma (mejor: cópiela y péguela) y el
+       captcha, y entre. El RFC se llena solo al cargar el certificado.
+    """
+        )
+        _img(
+            "02_login_efirma.jpg",
+            "Pantalla correcta: «Acceso con e.firma» con los archivos de la "
+            "e.firma cargados. Si aun así marca error, casi siempre es porque los "
+            "archivos se subieron desde Drive/Dropbox: cópielos al Escritorio.",
+        )
 
     # -----------------------------------------------------------------
-    section_label("Paso 3 — Datos del cliente")
-    st.markdown(
-        """
-Haga clic en el campo **«Cliente Frecuente»**: se despliega la lista de
-clientes a los que SNCG ya ha facturado. **Si el cliente está en la lista,
-selecciónelo y el portal llena todo solo** — no hay que volver a capturar
-nada.
-"""
-    )
-    _img(
-        "04_cliente_frecuente.jpg",
-        "La lista de clientes frecuentes. Para un cliente ya facturado, "
-        "selecciónelo y salte al Paso 4.",
-    )
-    st.markdown(
-        """
-Para un cliente **nuevo**, elija **«Otro»** (última opción). Aparecen los
-campos en rojo para capturar, todo copiado **tal cual de la CSF del cliente**:
-
-- **RFC** del cliente.
-- **Nombre o Razón Social:** exactamente como en la CSF, en MAYÚSCULAS y
-  **sin** régimen societario (sin «SA DE CV», «SAS», etc.). Una letra mal y
-  el portal lo rechaza contra el RFC.
-- **Código postal** del domicilio fiscal (el de la CSF, no el de la oficina).
-- **Régimen fiscal** del cliente (viene en la CSF).
-- **Uso de la Factura:** normalmente `G03 - Gastos en general`. ⚠️ La lista
-  tiene muchas opciones parecidas (S01, CP01, CN01...) — lea con calma y
-  elija la correcta; si el cliente pidió un uso específico, use ese.
-"""
-    )
-    _img(
-        "05_cliente_otro.jpg",
-        "Cliente nuevo: con «Otro» aparecen los campos RFC y Nombre "
-        "(en rojo = obligatorios).",
-    )
+    with st.expander("📄 Paso 2 — Abrir el formulario de factura", expanded=False):
+        st.markdown(
+            """
+    Ya dentro, en el menú superior derecho elija **«Generación de CFDI»**.
+    Se abre el formulario «Factura» (una sola página). La cabecera
+    **Comprobante** ya viene pre-llenada con los datos de SNCG — solo
+    **verifique** que diga: Régimen Simplificado de Confianza, C.P. `36250`,
+    Tipo `Ingreso`, Forma de pago `Transferencia electrónica de fondos`,
+    Método `Pago en una sola exhibición` (PUE) y Moneda `Peso Mexicano`.
+    """
+        )
+        _img(
+            "03_formulario.jpg",
+            "El formulario de factura. La cabecera «Comprobante» ya trae los "
+            "datos fijos de SNCG; usted solo llena cliente y concepto.",
+        )
+        st.markdown(
+            """
+    Sobre la forma y método de pago:
+    - Si el cliente pagará por transferencia (lo normal): deje `Transferencia` + `PUE`.
+    - Si aún no se sabe cómo pagará: Forma `99 - Por definir`.
+    - `PPD` solo si pagará después o en partes — y obliga a emitir luego un
+      **complemento de pago**. En SNCG lo normal es **PUE**.
+    """
+        )
 
     # -----------------------------------------------------------------
-    section_label("Paso 4 — Producto y servicio")
-    st.markdown(
-        """
-En **Producto y Servicio** haga clic en **«Agregar»** y llene:
+    with st.expander("👤 Paso 3 — Datos del cliente", expanded=False):
+        st.markdown(
+            """
+    Haga clic en el campo **«Cliente Frecuente»**: se despliega la lista de
+    clientes a los que SNCG ya ha facturado. **Si el cliente está en la lista,
+    selecciónelo y el portal llena todo solo** — no hay que volver a capturar
+    nada.
+    """
+        )
+        _img(
+            "04_cliente_frecuente.jpg",
+            "La lista de clientes frecuentes. Para un cliente ya facturado, "
+            "selecciónelo y salte al Paso 4.",
+        )
+        st.markdown(
+            """
+    Para un cliente **nuevo**, elija **«Otro»** (última opción). Aparecen los
+    campos en rojo para capturar, todo copiado **tal cual de la CSF del cliente**:
 
-- **Descripción Detallada:** texto libre, p. ej. `Servicio de inspección`
-  (agregue contenedor o PO si aplica).
-- **Producto o Servicio:** clic en la **lupa azul** 🔍 y busque `78141600`
-  — debe quedar seleccionado del catálogo, no escrito a mano.
-- **Unidad de Medida:** con su lupa, `E48 - Unidad de servicio`.
-- **Cantidad** y **Valor Unitario SIN IVA** (el Importe se calcula solo).
-- **Objeto de Impuesto:** `Sí objeto de impuesto`.
-- **Número de Identificación** y **Cuenta Predial:** se dejan **vacíos**.
-"""
-    )
-    _img(
-        "06_producto_servicio.jpg",
-        "El concepto llenado. «Número de Identificación» se queda vacío; el "
-        "Importe lo calcula el portal.",
-    )
-    st.markdown(
-        """
-Más abajo, deje marcada la casilla **«Acepto Sugerencia de Impuestos»**:
-el portal pone solo el **IVA cobrado, Tasa 16%**. Las retenciones (IVA/ISR)
-se quedan vacías — SNCG no retiene. «Número de pedimento» también se salta
-(es solo para venta de mercancía importada).
-"""
-    )
-    _img(
-        "07_impuestos.jpg",
-        "La sugerencia de impuestos ya trae IVA 16%. Retenciones vacías. "
-        "Al final, clic en «Guardar» para agregar el concepto.",
-    )
-    st.markdown(
-        """
-Clic en **«Guardar»**. El concepto aparece en la tabla y en **Totales**
-verifique: `Total = Subtotal × 1.16`. Si no cuadra, vea problemas frecuentes.
-"""
-    )
+    - **RFC** del cliente.
+    - **Nombre o Razón Social:** exactamente como en la CSF, en MAYÚSCULAS y
+      **sin** régimen societario (sin «SA DE CV», «SAS», etc.). Una letra mal y
+      el portal lo rechaza contra el RFC.
+    - **Código postal** del domicilio fiscal (el de la CSF, no el de la oficina).
+    - **Régimen fiscal** del cliente (viene en la CSF).
+    - **Uso de la Factura:** normalmente `G03 - Gastos en general`. ⚠️ La lista
+      tiene muchas opciones parecidas (S01, CP01, CN01...) — lea con calma y
+      elija la correcta; si el cliente pidió un uso específico, use ese.
+    """
+        )
+        _img(
+            "05_cliente_otro.jpg",
+            "Cliente nuevo: con «Otro» aparecen los campos RFC y Nombre "
+            "(en rojo = obligatorios).",
+        )
 
     # -----------------------------------------------------------------
-    section_label("Paso 5 — Sellar (firmar) la factura")
-    st.markdown(
-        """
-Arriba del formulario están los botones `Guardar · Vista Previa · Sellar ·
-Mi Factura`. Puede usar **Vista Previa** para revisar. Cuando todo esté
-bien, clic en **«Sellar»**.
+    with st.expander("🧾 Paso 4 — Producto y servicio", expanded=False):
+        st.markdown(
+            """
+    En **Producto y Servicio** haga clic en **«Agregar»** y llene:
 
-En la pantalla **«Firmar comprobante»** cargue los archivos del **CSD**
-(¡no los de la e.firma!) desde su Escritorio:
-
-1. **Clave privada (.key):** el `.key` que empieza con `CSD`.
-2. **Certificado (.cer):** el `.cer` de puros números.
-3. **Contraseña de clave privada:** la contraseña **del CSD** (es distinta
-   a la de la e.firma y a la del portal; la resguarda administración).
-4. **Confirmar** → **Firmar**.
-
-Si carga los archivos de la e.firma por error, el portal responde
-**«El Certificado utilizado no es de tipo Sello»** — es su forma de decir
-"me diste la e.firma, dame el CSD":
-"""
-    )
-    _img(
-        "08_error_no_es_sello.jpg",
-        "Error clásico al sellar: se cargaron los archivos de la e.firma en "
-        "lugar de los del CSD. Cambie a los archivos que empiezan con «CSD».",
-    )
-
-    # -----------------------------------------------------------------
-    section_label("Paso 6 — Descargar, verificar y archivar")
-    st.markdown(
-        """
-Al firmar, aparece **«Resultado de comprobante»** con el **folio fiscal
-(UUID)** — la factura ya está timbrada ante el SAT.
-"""
-    )
-    _img(
-        "09_timbrada.jpg",
-        "Factura timbrada. Los dos iconos de «Acciones» descargan el XML y "
-        "el PDF. Descárguelos ANTES de salir de esta pantalla.",
-    )
-    st.markdown(
-        f"""
-1. **Descargue el XML y el PDF** con los dos iconos de la columna Acciones
-   (llegan en un `.zip` con ambos). El XML es la factura legal; el PDF es
-   solo la vista. (Si salió sin descargar: «Consultar Facturas Emitidas».)
-2. Verifique el CFDI en {VERIFICA_URL} (estado: **Vigente**).
-3. Envíe **XML + PDF** al cliente.
-4. Guarde ambos en el Drive: `02_fiscal/facturas_ingresos/<Mes Año>/`,
-   nombrados con el UUID (convención de SNCG).
-"""
-    )
+    - **Descripción Detallada:** texto libre, p. ej. `Servicio de inspección`
+      (agregue contenedor o PO si aplica).
+    - **Producto o Servicio:** clic en la **lupa azul** 🔍 y busque `78141600`
+      — debe quedar seleccionado del catálogo, no escrito a mano.
+    - **Unidad de Medida:** con su lupa, `E48 - Unidad de servicio`.
+    - **Cantidad** y **Valor Unitario SIN IVA** (el Importe se calcula solo).
+    - **Objeto de Impuesto:** `Sí objeto de impuesto`.
+    - **Número de Identificación** y **Cuenta Predial:** se dejan **vacíos**.
+    """
+        )
+        _img(
+            "06_producto_servicio.jpg",
+            "El concepto llenado. «Número de Identificación» se queda vacío; el "
+            "Importe lo calcula el portal.",
+        )
+        st.markdown(
+            """
+    Más abajo, deje marcada la casilla **«Acepto Sugerencia de Impuestos»**:
+    el portal pone solo el **IVA cobrado, Tasa 16%**. Las retenciones (IVA/ISR)
+    se quedan vacías — SNCG no retiene. «Número de pedimento» también se salta
+    (es solo para venta de mercancía importada).
+    """
+        )
+        _img(
+            "07_impuestos.jpg",
+            "La sugerencia de impuestos ya trae IVA 16%. Retenciones vacías. "
+            "Al final, clic en «Guardar» para agregar el concepto.",
+        )
+        st.markdown(
+            """
+    Clic en **«Guardar»**. El concepto aparece en la tabla y en **Totales**
+    verifique: `Total = Subtotal × 1.16`. Si no cuadra, vea problemas frecuentes.
+    """
+        )
 
     # -----------------------------------------------------------------
-    section_label("Cómo cancelar una factura")
-    _img(
-        "10_consulta.jpg",
-        "El menú de consulta: «Consultar Facturas Emitidas» es donde se "
-        "busca y cancela una factura.",
-    )
-    st.markdown(
-        f"""
-1. En el portal: **«Consultar Facturas Emitidas»** → busque por fecha de
-   emisión o por folio fiscal (UUID) → marque la factura →
-   **«Cancelar seleccionados»**.
-2. El SAT pide un **motivo de cancelación**:
-   - `02 - Comprobantes emitidos con errores SIN relación` → el caso normal
-     (factura duplicada, datos mal, prueba). **Use este por defecto.**
-   - `01 - Con errores CON relación` → solo si ya emitió la factura corregida;
-     el portal pedirá el UUID de la factura que la sustituye.
-   - `03 - No se llevó a cabo la operación` → el servicio nunca ocurrió.
-3. Se firma la cancelación con el **CSD** (mismos archivos y contraseña que
-   al sellar).
-4. **¿Necesita aceptación del cliente?**
-   - Facturas de **$1,000 MXN o menos** (o canceladas el mismo día): se
-     cancelan **directo, sin aceptación**.
-   - Facturas mayores: el cliente recibe la solicitud en su **Buzón
-     Tributario** y tiene **3 días hábiles** para aceptar o rechazar. Si no
-     responde, se cancela automáticamente (positiva ficta).
-5. Descargue el **acuse de cancelación** y verifique en {VERIFICA_URL} que el
-   estado diga **Cancelado**. Archive el acuse junto con la factura.
+    with st.expander("✍️ Paso 5 — Sellar (firmar) la factura", expanded=False):
+        st.markdown(
+            """
+    Arriba del formulario están los botones `Guardar · Vista Previa · Sellar ·
+    Mi Factura`. Puede usar **Vista Previa** para revisar. Cuando todo esté
+    bien, clic en **«Sellar»**.
 
-⏰ **Plazo legal:** una factura solo puede cancelarse hasta el último día del
-mes en que se presenta la declaración anual del ejercicio en que se emitió.
-No deje cancelaciones pendientes de un año a otro.
-"""
-    )
+    En la pantalla **«Firmar comprobante»** cargue los archivos del **CSD**
+    (¡no los de la e.firma!) desde su Escritorio:
+
+    1. **Clave privada (.key):** el `.key` que empieza con `CSD`.
+    2. **Certificado (.cer):** el `.cer` de puros números.
+    3. **Contraseña de clave privada:** la contraseña **del CSD** (es distinta
+       a la de la e.firma y a la del portal; la resguarda administración).
+    4. **Confirmar** → **Firmar**.
+
+    Si carga los archivos de la e.firma por error, el portal responde
+    **«El Certificado utilizado no es de tipo Sello»** — es su forma de decir
+    "me diste la e.firma, dame el CSD":
+    """
+        )
+        _img(
+            "08_error_no_es_sello.jpg",
+            "Error clásico al sellar: se cargaron los archivos de la e.firma en "
+            "lugar de los del CSD. Cambie a los archivos que empiezan con «CSD».",
+        )
+
+    # -----------------------------------------------------------------
+    with st.expander("⬇️ Paso 6 — Descargar, verificar y archivar", expanded=False):
+        st.markdown(
+            """
+    Al firmar, aparece **«Resultado de comprobante»** con el **folio fiscal
+    (UUID)** — la factura ya está timbrada ante el SAT.
+    """
+        )
+        _img(
+            "09_timbrada.jpg",
+            "Factura timbrada. Los dos iconos de «Acciones» descargan el XML y "
+            "el PDF. Descárguelos ANTES de salir de esta pantalla.",
+        )
+        st.markdown(
+            f"""
+    1. **Descargue el XML y el PDF** con los dos iconos de la columna Acciones
+       (llegan en un `.zip` con ambos). El XML es la factura legal; el PDF es
+       solo la vista. (Si salió sin descargar: «Consultar Facturas Emitidas».)
+    2. Verifique el CFDI en {VERIFICA_URL} (estado: **Vigente**).
+    3. Envíe **XML + PDF** al cliente.
+    4. Guarde ambos en el Drive: `02_fiscal/facturas_ingresos/<Mes Año>/`,
+       nombrados con el UUID (convención de SNCG).
+    """
+        )
+
+    # -----------------------------------------------------------------
+    with st.expander("🚫 Cómo cancelar una factura", expanded=False):
+        _img(
+            "10_consulta.jpg",
+            "El menú de consulta: «Consultar Facturas Emitidas» es donde se "
+            "busca y cancela una factura.",
+        )
+        st.markdown(
+            f"""
+    1. En el portal: **«Consultar Facturas Emitidas»** → busque por fecha de
+       emisión o por folio fiscal (UUID) → marque la factura →
+       **«Cancelar seleccionados»**.
+    2. El SAT pide un **motivo de cancelación**:
+       - `02 - Comprobantes emitidos con errores SIN relación` → el caso normal
+         (factura duplicada, datos mal, prueba). **Use este por defecto.**
+       - `01 - Con errores CON relación` → solo si ya emitió la factura corregida;
+         el portal pedirá el UUID de la factura que la sustituye.
+       - `03 - No se llevó a cabo la operación` → el servicio nunca ocurrió.
+    3. Se firma la cancelación con el **CSD** (mismos archivos y contraseña que
+       al sellar).
+    4. **¿Necesita aceptación del cliente?**
+       - Facturas de **$1,000 MXN o menos** (o canceladas el mismo día): se
+         cancelan **directo, sin aceptación**.
+       - Facturas mayores: el cliente recibe la solicitud en su **Buzón
+         Tributario** y tiene **3 días hábiles** para aceptar o rechazar. Si no
+         responde, se cancela automáticamente (positiva ficta).
+    5. Descargue el **acuse de cancelación** y verifique en {VERIFICA_URL} que el
+       estado diga **Cancelado**. Archive el acuse junto con la factura.
+
+    ⏰ **Plazo legal:** una factura solo puede cancelarse hasta el último día del
+    mes en que se presenta la declaración anual del ejercicio en que se emitió.
+    No deje cancelaciones pendientes de un año a otro.
+    """
+        )
 
     # -----------------------------------------------------------------
     section_label("Problemas frecuentes y cómo resolverlos")
@@ -515,15 +515,15 @@ No se puede «editar» un CFDI timbrado; solo cancelar y reemitir:
             st.markdown(body)
 
     # -----------------------------------------------------------------
-    section_label("Práctica recomendada")
-    st.markdown(
-        """
-Antes de facturar «en serio» por primera vez, haga **una factura de prueba de
-$1.00 MXN** a un RFC conocido con uso `S01 - Sin efectos fiscales`,
-verifíquela y luego **cancélela con motivo 02**. Por ser menor a $1,000 MXN
-la cancelación es directa, sin aceptación del receptor. Así se recorre el
-proceso completo (emitir → verificar → cancelar) sin ningún efecto fiscal.
-Este recorrido se validó el **2026-08-01** — las capturas de esta guía son
-de esa prueba real.
-"""
-    )
+    with st.expander("🧪 Práctica recomendada", expanded=False):
+        st.markdown(
+            """
+    Antes de facturar «en serio» por primera vez, haga **una factura de prueba de
+    $1.00 MXN** a un RFC conocido con uso `S01 - Sin efectos fiscales`,
+    verifíquela y luego **cancélela con motivo 02**. Por ser menor a $1,000 MXN
+    la cancelación es directa, sin aceptación del receptor. Así se recorre el
+    proceso completo (emitir → verificar → cancelar) sin ningún efecto fiscal.
+    Este recorrido se validó el **2026-08-01** — las capturas de esta guía son
+    de esa prueba real.
+    """
+        )
