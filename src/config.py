@@ -18,7 +18,7 @@ from typing import Optional
 
 import streamlit as st
 
-APP_VERSION = "0.2.0"
+APP_VERSION = "0.3.0"
 
 
 def _get_secret(key: str) -> Optional[str]:
